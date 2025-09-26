@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday, Champak!</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Prevent scrollbars from the 3D canvas */
+        }
+        
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Place it behind all other content */
+        }
+
+        /* Custom styles for the glassmorphism effect */
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform-origin: center center; /* Ensure scaling animations originate from the center */
+        }
+        
+        .step {
+            /* All steps are hidden by default, JS will manage visibility */
+            display: none;
+            opacity: 0;
+            transform: scale(0.8);
+        }
+
+        #final-wish {
+             opacity: 0;
+             transform: translateY(20px);
+        }
+
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+    <!-- 3D Background Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Main Content Container -->
+    <main class="w-full h-screen flex items-center justify-center p-4">
+        <div id="wish-container" class="w-full max-w-md mx-auto">
+            <!-- Step 1 -->
+            <div id="step-1" class="step card rounded-2xl p-6 md:p-8 text-center shadow-2xl">
+                <p class="text-lg md:text-xl leading-relaxed text-gray-200">Hey Champak,<br>On this special day, I wanted to take a moment to celebrate 🥳 the incredible person you are. Your kindness, humor, and unwavering support make the world a brighter place.💖🐱</p>
+                <button data-next="2" class="next-btn mt-6 bg-rose-500 hover:bg-rose-600 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 shadow-lg">Next</button>
+            </div>
+
+            <!-- Step 2: Image 1 -->
+            <div id="step-2" class="step card rounded-2xl p-6 md:p-8 text-center shadow-2xl">
+                <img src="https://i.postimg.cc/QMs5mY2w/Whats-App-Image-2025-09-26-at-10-05-12-PM.jpg" alt="A memorable photo with Champak" class="rounded-lg shadow-lg mx-auto" onerror="this.onerror=null;this.src='https://placehold.co/400x300/ef4444/ffffff?text=Image+Not+Found';">
+                <p class="text-sm mt-4 text-gray-300">A picture that always makes me smile.😊</p>
+                <button data-next="4" class="next-btn mt-4 bg-rose-500 hover:bg-rose-600 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 shadow-lg">Next</button>
+            </div>
+
+            <!-- Step 4 -->
+            <div id="step-4" class="step card rounded-2xl p-6 md:p-8 text-center shadow-2xl">
+                <p class="text-lg md:text-xl leading-relaxed text-gray-200">Thinking about our journey, I'm filled with gratitude for all the laughter, adventures, and even the challenges we've faced together. You've been a constant source of strength and inspiration.🫵🏻💪🏻</p>
+                <button data-next="5" class="next-btn mt-6 bg-rose-500 hover:bg-rose-600 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 shadow-lg">Next</button>
+            </div>
+            <!-- Step 5 -->
+            <div id="step-5" class="step card rounded-2xl p-6 md:p-8 text-center shadow-2xl">
+                <p class="text-lg md:text-xl leading-relaxed text-gray-200">You're not just a friend; you're family. Your presence in my life is a gift I cherish every single day. Thank you for being you, in all your amazing, authentic glory.🫶🏻✨</p>
+                <button data-next="6" class="next-btn mt-6 bg-rose-500 hover:bg-rose-600 text-white font-bold py-2 px-6 rounded-full transition-all duration-300 shadow-lg">Next</button>
+            </div>
+            <!-- Step 6 -->
+            <div id="step-6" class="step card rounded-2xl p-6 md:p-8 text-center shadow-2xl">
+                <p class="text-lg md:text-xl leading-relaxed text-gray-200">Shree....!!May the next year bring you all the love, success, and pure happiness you so rightfully deserve. May your dreams soar higher than ever.<br> I love u shree 🥰</p>
+                <div id="final-message-placeholder" class="h-12"> <!-- Reserved space for final message -->
+                     <h1 id="final-wish" class="text-3xl md:text-4xl font-bold text-transparent" style="font-family: 'Playfair Display', serif; background-image: linear-gradient(to right, #f472b6, #fb923c); -webkit-background-clip: text; background-clip: text;">Happy Birthday, Champak ! ❤️</h1>
+                </div>
+                <button id="celebrate-btn" class="mt-2 bg-gradient-to-r from-amber-400 to-rose-500 hover:from-amber-500 hover:to-rose-600 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 shadow-2xl transform hover:scale-105">Celebrate!</button>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        // --- THREE.js Setup ---
+        let scene, camera, renderer, hearts = [];
+        const canvas = document.getElementById('bg-canvas');
+
+        function initThree() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+
+            // Create Hearts
+            const heartShape = new THREE.Shape();
+            heartShape.moveTo(25, 25);
+            heartShape.bezierCurveTo(25, 25, 20, 0, 0, 0);
+            heartShape.bezierCurveTo(-30, 0, -30, 35, -30, 35);
+            heartShape.bezierCurveTo(-30, 55, -10, 77, 25, 95);
+            heartShape.bezierCurveTo(60, 77, 80, 55, 80, 35);
+            heartShape.bezierCurveTo(80, 35, 80, 0, 50, 0);
+            heartShape.bezierCurveTo(35, 0, 25, 25, 25, 25);
+
+            const extrudeSettings = { depth: 8, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 1, bevelThickness: 1 };
+            const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+            
+            for (let i = 0; i < 40; i++) {
+                const material = new THREE.MeshStandardMaterial({
+                    color: new THREE.Color(`hsl(${Math.random() * 30 + 330}, 90%, 60%)`), // Shades of pink and red
+                    metalness: 0.5,
+                    roughness: 0.3,
+                    transparent: true
+                });
+                const heart = new THREE.Mesh(geometry, material);
+                
+                heart.position.set(
+                    (Math.random() - 0.5) * 50,
+                    (Math.random() - 0.5) * 50,
+                    (Math.random() - 0.5) * 50
+                );
+                heart.rotation.set(
+                    Math.random() * Math.PI,
+                    Math.random() * Math.PI,
+                    Math.random() * Math.PI
+                );
+
+                const scale = Math.random() * 0.02 + 0.01;
+                heart.scale.set(scale, scale, scale);
+
+                heart.userData = {
+                    vx: (Math.random() - 0.5) * 0.01,
+                    vy: (Math.random() - 0.5) * 0.01,
+                    vz: (Math.random() - 0.5) * 0.01,
+                    rotX: (Math.random() - 0.5) * 0.01,
+                    rotY: (Math.random() - 0.5) * 0.01,
+                };
+
+                hearts.push(heart);
+                scene.add(heart);
+            }
+
+            camera.position.z = 30;
+        }
+
+        function animateThree() {
+            requestAnimationFrame(animateThree);
+
+            hearts.forEach(heart => {
+                heart.position.x += heart.userData.vx;
+                heart.position.y += heart.userData.vy;
+                heart.position.z += heart.userData.vz;
+                heart.rotation.x += heart.userData.rotX;
+                heart.rotation.y += heart.userData.rotY;
+
+                // Boundary check
+                if (heart.position.x > 25 || heart.position.x < -25) heart.userData.vx *= -1;
+                if (heart.position.y > 25 || heart.position.y < -25) heart.userData.vy *= -1;
+                if (heart.position.z > 25 || heart.position.z < -25) heart.userData.vz *= -1;
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        // --- GSAP & UI Logic ---
+        let currentStep = 1;
+
+        function setupEventListeners() {
+            document.querySelectorAll('.next-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const next = parseInt(button.dataset.next);
+                    goToStep(next);
+                });
+            });
+
+            document.getElementById('celebrate-btn').addEventListener('click', grandFinale);
+        }
+
+        function goToStep(step) {
+            const currentEl = document.getElementById(`step-${currentStep}`);
+            const nextEl = document.getElementById(`step-${step}`);
+            
+            const tl = gsap.timeline({
+                onStart: () => {
+                    if(nextEl) nextEl.style.display = 'block';
+                },
+                onComplete: () => {
+                    if(currentEl) currentEl.style.display = 'none';
+                    currentStep = step;
+                }
+            });
+
+            tl.to(currentEl, { opacity: 0, scale: 0.8, duration: 0.4, ease: 'power2.in' })
+              .to(nextEl, { opacity: 1, scale: 1, duration: 0.4, ease: 'power2.out' }, '-=0.2');
+        }
+
+        function grandFinale() {
+            const btn = document.getElementById('celebrate-btn');
+            const wish = document.getElementById('final-wish');
+
+            // 1. Animate UI
+            const tl = gsap.timeline();
+            tl.to(btn, { opacity: 0, y: 10, duration: 0.3, ease: 'power2.in', onComplete: () => btn.disabled = true })
+              .to(wish, { opacity: 1, y: 0, duration: 0.8, ease: 'elastic.out(1, 0.5)' }, '+=0.2');
+
+            // 2. Animate 3D Hearts
+            hearts.forEach(heart => {
+                gsap.to(heart.position, {
+                    x: heart.position.x * 3,
+                    y: heart.position.y + 20, // Float up
+                    z: heart.position.z * 3,
+                    duration: 5,
+                    ease: 'power2.in'
+                });
+                gsap.to(heart.material, {
+                    opacity: 0,
+                    duration: 5,
+                    ease: 'power2.in'
+                });
+            });
+
+            // 3. Launch Confetti
+            launchConfetti();
+        }
+        
+        // --- Confetti Logic ---
+        function launchConfetti() {
+            const duration = 5 * 1000;
+            const end = Date.now() + duration;
+
+            // Emojis and colors
+            const colors = ['#f472b6', '#fb923c', '#facc15', '#ffffff'];
+            
+            function createConfetti(origin) {
+                 confetti({
+                    ...origin,
+                    particleCount: Math.floor(200 * origin.scalar),
+                    angle: origin.angle,
+                    spread: 55,
+                    startVelocity: 45,
+                    colors: colors,
+                });
+            }
+
+            // Powerful bursts from corners
+            createConfetti({ origin: { x: 0.1, y: 0.8 }, scalar: 1, angle: 60 });
+            createConfetti({ origin: { x: 0.9, y: 0.8 }, scalar: 1, angle: 120 });
+
+            // Gentle continuous shower
+            (function frame() {
+                if (Date.now() > end) return;
+
+                // Left side
+                confetti({
+                    particleCount: 2,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0, y: 0 },
+                    colors: colors
+                });
+                // Right side
+                confetti({
+                    particleCount: 2,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1, y: 0 },
+                    colors: colors
+                });
+                
+                // Add some star shapes for sparkle ✨
+                confetti({
+                    particleCount: 1,
+                    spread: 160,
+                    angle: 90,
+                    origin: { y: 0 },
+                    shapes: ['star'],
+                    colors: ['#facc15']
+                });
+                
+                requestAnimationFrame(frame);
+            }());
+        }
+
+
+        // --- Initial Load ---
+        window.addEventListener('load', () => {
+            initThree();
+            animateThree();
+            setupEventListeners();
+            
+            // Show first step initially
+            const firstStep = document.getElementById('step-1');
+            firstStep.style.display = 'block';
+            gsap.to(firstStep, { opacity: 1, scale: 1, duration: 0.5, delay: 0.2 });
+
+            window.addEventListener('resize', onWindowResize, false);
+        });
+    </script>
+</body>
+</html>
